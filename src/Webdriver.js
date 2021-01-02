@@ -1,4 +1,5 @@
 const Selenium = require("selenium-webdriver");
+const chromedriver = require('chromedriver');
 const elXPaths = require("./elXpaths");
 const configCountry = require("./configCountry");
 const readline = require("readline");
@@ -162,7 +163,7 @@ class Webdriver {
 
   /**
    * This function loop the products from a page, than update the prices when needed
-   * @param {Integer} numberOfProducts 
+   * @param {Integer} numberOfProducts
    */
   async loopProductsPrice(numberOfProducts) {
     await this.waitPageLoad();
@@ -234,7 +235,7 @@ class Webdriver {
 
   /**
    * This function find a element than click than.
-   * @param {locator} element 
+   * @param {locator} element
    */
   async buttonClick(element) {
     return await (await this.driver).findElement(element).click();
@@ -242,7 +243,7 @@ class Webdriver {
 
   /**
    * Just set a new URL from browser
-   * @param {String} url 
+   * @param {String} url
    */
   async getURL(url) {
     return (await this.driver).get(url);
@@ -250,7 +251,7 @@ class Webdriver {
 
   /**
    * Execute a JS script on browser
-   * @param {String} script 
+   * @param {String} script
    */
   async executeAsyncScript(script) {
     return await this.driver.executeAsyncScript(script);
@@ -272,7 +273,7 @@ class Webdriver {
 
   /**
    * Thread fuction
-   * @param {Integer} msec 
+   * @param {Integer} msec
    */
   async thread(msec) {
     return new Promise((resolve) => setTimeout(resolve, msec));
@@ -280,7 +281,7 @@ class Webdriver {
 
   /**
    * A Sleep fuction
-   * @param {Integer} msec 
+   * @param {Integer} msec
    */
   async sleep(msec) {
     return (await this.driver).sleep(msec);
