@@ -141,16 +141,21 @@ class Webdriver {
         console.log("Page: " + currentTab);
         (await this.driver).sleep(3000);
         await this.waitPageLoad();
-        // Loop Prices
-        await this.loopProductsPrice(currentPageTotalProducts);
 
-        consoleQuest.question("Completed - Waiting for save....\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:", async answer => {
-          if (answer == 1) {
-            await this.loopPages();
-          } else if (answer == 2) {
-            await this.doQuestion();
-          } else if (answer == 0) {
-            return;
+        await consoleQuest.question("Start Update? ", async answer =>{
+          if (answer == "y") {
+            // Loop Prices
+            await this.loopProductsPrice(currentPageTotalProducts);
+
+            consoleQuest.question("Completed - Waiting for save....\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:", async answer => {
+              if (answer == 1) {
+                await this.loopPages();
+              } else if (answer == 2) {
+                await this.doQuestion();
+              } else if (answer == 0) {
+                return;
+              }
+            });
           }
         });
       } else {
