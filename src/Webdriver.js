@@ -142,10 +142,11 @@ class Webdriver {
         (await this.driver).sleep(3000);
         await this.waitPageLoad();
 
-        await consoleQuest.question("Start Update? ", async answer =>{
+        consoleQuest.question("Start Update? ", async answer =>{
           if (answer == "y") {
             // Loop Prices
             await this.loopProductsPrice(currentPageTotalProducts);
+            await this.waitPageLoad();
 
             consoleQuest.question("Completed - Waiting for save....\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:", async answer => {
               if (answer == 1) {
@@ -158,6 +159,7 @@ class Webdriver {
             });
           }
         });
+
       } else {
         return;
       }
