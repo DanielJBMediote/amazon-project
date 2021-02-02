@@ -1,7 +1,5 @@
 const Webdriver = require('./Webdriver');
 
-const amazonDriver = new Webdriver({
-  browser: 'chrome'
-});
+const amazonDriver = new Webdriver();
 
 amazonDriver.boot();

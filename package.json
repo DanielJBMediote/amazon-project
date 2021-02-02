@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "chromedriver": "^87.0.4",
+    "chromedriver": "^87.0.7",
     "selenium-webdriver": "^4.0.0-alpha.8"
   },
   "engines": {
