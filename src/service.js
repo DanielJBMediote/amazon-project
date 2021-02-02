@@ -1,4 +1,4 @@
-const Webdriver = require('./Webdriver');
+const Webdriver = require('./webdriver');
 
 const amazonDriver = new Webdriver();
 
