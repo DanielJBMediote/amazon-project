@@ -8,7 +8,7 @@
     "selenium-webdriver": "^4.0.0-alpha.8"
   },
   "engines": {
-    "node": "8.0.0"
+    "node": "^8.0.0"
   },
   "scripts": {
     "start": "node src/service.js"

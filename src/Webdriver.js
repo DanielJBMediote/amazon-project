@@ -1,9 +1,9 @@
 const { Builder, By, until, wait } = require("selenium-webdriver");
 const chromedriver = require("chromedriver");
 const elXPaths = require("./elXpaths");
-const configCountry = require("./config");
+const countries = require("./config");
 const readline = require("readline");
-const consoleQuest = readline.createInterface({
+const inputQuestion = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
@@ -29,7 +29,7 @@ class Webdriver {
 
       await this.waitPageLoad();
 
-      consoleQuest.question("Logged?[y/n]", async (answer) => {
+      inputQuestion.question("Logged?[y/n]", async (answer) => {
         if (answer == "y") {
           await this.waitPageLoad();
           await this.doQuestion();
@@ -39,19 +39,25 @@ class Webdriver {
         }
       });
     } catch (error) {
-      console.error(error.message);
+      inputQuestion.error(error.message);
     }
   }
 
   async doQuestion() {
-    console.log("Chosse the country you want re-price:");
-    let index = 0;
-    configCountry.forEach((country) => {
-      console.log(index + ". " + country);
-      index++;
-    });
-    consoleQuest.question("Number: ", async (number) => {
-      await this.loopAmazonCountry(number);
+    await this.getURL("https://sellercentral.amazon.de/global-picker");
+    console.log("Chosse the country you want re-price on website.\n[Except Poland, Sweden, Netherlands]");
+    // let index = 0;
+    // countries.forEach((country) => {
+    //   console.log(index + ". " + country);
+    //   index++;
+    // });
+    inputQuestion.question("Press 'y' to continue: ", async (answer) => {
+      if (answer == "y") {
+        await this.loopAmazonCountry();
+      } else {
+        console.log();
+        (await this.driver).quit();
+      }
     });
   }
 
@@ -59,43 +65,13 @@ class Webdriver {
    * This function loop the Dropdown button of Amazon Seller page, that do a foreach
    * in all country.
    */
-  async loopAmazonCountry(numberOfCountry) {
-    let arr = configCountry.length;
-    let countryName = configCountry[numberOfCountry];
-    // console.log(countryName);
-    let indexOption = 1;
-    do {
-      await this.waitPageLoad();
-      await this.driver.wait(
-        until.elementsLocated(
-          By.xpath("/html/body/div[1]/div[1]/div/div[6]/div[2]/div[4]/div/select/optgroup/option[" + indexOption + "]")
-        )
-      );
+  async loopAmazonCountry() {
+    await this.waitPageLoad();
 
-      let option = await this.driver.findElement(
-        By.xpath("/html/body/div[1]/div[1]/div/div[6]/div[2]/div[4]/div/select/optgroup/option[" + indexOption + "]")
-      );
+    await this.getURL("https://sellercentral.amazon.de/inventory/");
+    await this.waitPageLoad();
 
-      let optionText = (await option.getAttribute("innerHTML"))
-        .split(" ")
-        .filter((w) => w !== "")[1]
-        .replace("\n", "");
-
-      if (countryName == optionText) {
-        console.log("Country: " + optionText);
-        await this.buttonClick(
-          By.xpath("/html/body/div[1]/div[1]/div/div[6]/div[2]/div[4]/div/select/optgroup/option[" + indexOption + "]")
-        );
-
-        await this.waitPageLoad();
-        await this.getURL("https://sellercentral.amazon.de/inventory/");
-        await this.waitPageLoad();
-
-        await this.loopPages();
-      }
-
-      indexOption++;
-    } while (indexOption <= arr);
+    await this.loopPages();
   }
 
   /**
@@ -120,7 +96,7 @@ class Webdriver {
     totalTabs = totalTabs.split(" ")[1];
     console.log(`Number of Products: ${totalProducts}. \n Pages: ${totalTabs}`);
 
-    consoleQuest.question(`Chosse the page of 1 to ${totalTabs}.\n[Press 0 to Exit]\nPage:`, async (page) => {
+    inputQuestion.question(`Chosse the page of 1 to ${totalTabs}\n[Press 0 to Exit]\nPage:`, async (page) => {
       if (page != 0) {
         let currentTab = Number(page);
 
@@ -144,18 +120,14 @@ class Webdriver {
         (await this.driver).sleep(3000);
         await this.waitPageLoad();
 
-        consoleQuest.question("Start Update? ", async (answer) => {
+        inputQuestion.question("Start Update? ", async (answer) => {
           if (answer == "y") {
             // Loop Prices
             await this.loopProductsPrice(currentPageTotalProducts);
             await this.waitPageLoad();
 
-            consoleQuest.question(
-              `Completed - Waiting for save...\n
-               1. To Re-price another page.\n
-               2. To Change the Country.\n
-               0. To Exit.\n
-               Number:`,
+            inputQuestion.question(
+              `Completed - Waiting for save...\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:`,
               async (answer) => {
                 if (answer == 1) {
                   await this.loopPages();
@@ -298,7 +270,7 @@ class Webdriver {
   async waitPageLoad() {
     return await this.driver.wait(() => {
       return this.driver.executeScript("return document.readyState").then((readyState) => {
-        console.log("Waiting for page loaded...");
+        // console.log("Waiting for page loaded...");
         return readyState === "complete";
       });
     });
