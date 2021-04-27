@@ -1,7 +1,7 @@
 const { Builder, By, until, wait } = require("selenium-webdriver");
 const chromedriver = require("chromedriver");
 const elXPaths = require("./elXpaths");
-const countries = require("./config");
+// const countries = require("./config");
 const readline = require("readline");
 const inputQuestion = readline.createInterface({
   input: process.stdin,
@@ -26,7 +26,6 @@ class Webdriver {
       await this.getURL("https://sellercentral.amazon.de/");
 
       await this.buttonClick(By.xpath(elXPaths.LINKS.loginButton));
-
       await this.waitPageLoad();
 
       inputQuestion.question("Logged?[y/n]", async (answer) => {
@@ -35,17 +34,19 @@ class Webdriver {
           await this.doQuestion();
         } else {
           console.log("Exit.");
-          (await this.driver).quit();
+          await this.driver.quit()
+          process.exit()
         }
       });
     } catch (error) {
-      inputQuestion.error(error.message);
+      console.error(error.message);
+      // inputQuestion.log(error.message);
     }
   }
 
   async doQuestion() {
     await this.getURL("https://sellercentral.amazon.de/global-picker");
-    console.log("Chosse the country you want re-price on website.\n[Except Poland, Sweden, Netherlands]");
+    console.log("Choose the country to update prices.\n[Except Poland, Sweden, Netherlands]");
     // let index = 0;
     // countries.forEach((country) => {
     //   console.log(index + ". " + country);
@@ -57,6 +58,7 @@ class Webdriver {
       } else {
         console.log();
         (await this.driver).quit();
+        process.exit();
       }
     });
   }
@@ -96,7 +98,7 @@ class Webdriver {
     totalTabs = totalTabs.split(" ")[1];
     console.log(`Number of Products: ${totalProducts}. \n Pages: ${totalTabs}`);
 
-    inputQuestion.question(`Chosse the page of 1 to ${totalTabs}\n[Press 0 to Exit]\nPage:`, async (page) => {
+    inputQuestion.question(`Chosse one page between 1 to ${totalTabs}\n[Press 0 to Exit]\nPage:`, async (page) => {
       if (page != 0) {
         let currentTab = Number(page);
 
@@ -120,7 +122,7 @@ class Webdriver {
         (await this.driver).sleep(3000);
         await this.waitPageLoad();
 
-        inputQuestion.question("Start Update? ", async (answer) => {
+        inputQuestion.question("Start Update? [Y to start/N to abort operation]", async (answer) => {
           if (answer == "y") {
             // Loop Prices
             await this.loopProductsPrice(currentPageTotalProducts);
@@ -144,6 +146,7 @@ class Webdriver {
       } else {
         console.log("Exited.");
         (await this.driver).quit();
+        process.exit();
       }
     });
   }
