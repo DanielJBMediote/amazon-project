@@ -11,6 +11,6 @@
     "node": "^8.0.0"
   },
   "scripts": {
-    "start": "node src/service.js"
+    "start": "node src/webdriver.js"
   }
 }

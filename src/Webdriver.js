@@ -1,5 +1,4 @@
-const { Builder, By, until, wait } = require("selenium-webdriver");
-const chromedriver = require("chromedriver");
+const { Builder, By, until } = require("selenium-webdriver");
 const elXPaths = require("./elXpaths");
 // const countries = require("./config");
 const readline = require("readline");
@@ -12,10 +11,13 @@ const inputQuestion = readline.createInterface({
  * This class is a Webdriver, it use to automatize the update prices from Amazon.
  */
 class Webdriver {
-  constructor() {
-    this.driver = new Builder().forBrowser("chrome").build();
+  
 
+  constructor(browser) {
+    this.driver = new Builder().forBrowser(browser).build();
     this.driver.manage().window().maximize();
+    
+    this.boot()
   }
 
   /**
@@ -165,7 +167,7 @@ class Webdriver {
           until.elementLocated(
             By.xpath(
               `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
+                `tr[${index + 1}]/td[12]/div/div[2]/span/div/div/span/input`
             )
           ),
           20000
@@ -183,7 +185,7 @@ class Webdriver {
             By.xpath(
               `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
                 `tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
-            )
+                )
           ),
           20000
         )
@@ -296,4 +298,4 @@ class Webdriver {
   }
 }
 
-module.exports = Webdriver;
+new Webdriver("chrome")
