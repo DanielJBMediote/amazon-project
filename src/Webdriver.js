@@ -167,9 +167,9 @@ class Webdriver {
           until.elementLocated(
             By.xpath(
               `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[12]/div/div[2]/span/div/div/span/input`
+                `tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
             )
-          ),
+            ),
           20000
         )
         .then(async (el) => {
