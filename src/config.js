@@ -1,4 +1,4 @@
-const optionsCountry = [
+const countries = [
   'www.amazon.co.uk',
   'www.amazon.de',
   'www.amazon.fr',
@@ -9,4 +9,4 @@ const optionsCountry = [
   // 'www.amazon.se'
 ]
 
-module.exports = optionsCountry;
+module.exports = countries;

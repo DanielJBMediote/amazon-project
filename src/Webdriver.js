@@ -13,19 +13,18 @@ const inquirer = require('inquirer');
  * This class is a Webdriver, it use to automatize the update prices from Amazon.
  */
 class Webdriver {
-  
 
-  constructor(browser) {
-    this.driver = new Builder().forBrowser(browser).build();
+  async boot(){
+    this.driver = new Builder().forBrowser('chrome').build();
     this.driver.manage().window().maximize();
     
-    this.boot()
+    this.init()
   }
 
   /**
    * Init funciton
    */
-  async boot() {
+  async init() {
     try {
       await this.getURL("https://sellercentral.amazon.de/");
 
@@ -180,7 +179,8 @@ class Webdriver {
           await inquirer.prompt([
             {
               type: "list",
-              name: "choise",
+              name: "choice",
+              message: "Continue updating another page or change country?",
               choices: [
                 "Update another Page.",
                 "Change to current Country.",
@@ -188,11 +188,11 @@ class Webdriver {
               ]
             }
           ]).then(async (answer2) => {
-            if (answer2.choice == "Update another Page."){
+            if (String(answer2.choice).startsWith("Update another Page.")){
               await this.loopPages();
-            } else if (answer2.choice == "Change to current Country."){
+            } else if (String(answer2.choice).startsWith("Change to current Country.")){
               await this.pickCountry();
-            } else if (answer2.choice == "Exit") {
+            } else {
               (await this.driver).quit();
               process.exit()
             }
@@ -267,35 +267,37 @@ class Webdriver {
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
             )
             ),
           20000
         )
+        /**
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[2]/td[12]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[3]/td[12]/div/div[1]/span/div/div/span/input
+         */
         .then(async (el) => {
           return await el.getAttribute("value");
         })
-        .catch(() => {
-          console.error("Element not found.");
-        });
+        .catch(error => console.log("Error Element not found. \n", error ));
 
       let priceElBussiness = await this.driver
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
           ),
           20000
         )
+        /**
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[2]/td[13]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[3]/td[13]/div/div[1]/span/div/div/span/input
+         */
         .then(async (el) => {
           return await el.getAttribute("value");
         })
-        .catch(() => {
-          console.error("Element not found.");
-        });
+        .catch(error => console.log("Error Element not found. \n", error ));
 
       // await this.sleep(300);
 
@@ -307,10 +309,9 @@ class Webdriver {
             (
               await (await this.driver).findElement(
                 By.xpath(
-                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                    `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
-              )
+              ).catch(error => console.log("Error Element not found. \n", error ))
             ).sendKeys(priceElClient);
             console.log(
               index + ". Amazon's price: " + priceElClient + " - Bussines's price: " + priceElClient + " - Updated"
@@ -320,16 +321,14 @@ class Webdriver {
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                      `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
-                )
+                ).catch(error => console.log("Error Element not found. \n", error ))
               ).clear();
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                      `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
                 )
               ).sendKeys(priceElClient);
@@ -399,4 +398,4 @@ class Webdriver {
   }
 }
 
-new Webdriver("chrome")
+module.exports = Webdriver;

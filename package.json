@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "main": "src/service.js",
   "license": "MIT",
+  "type": "commonjs",
   "dependencies": {
     "chromedriver": "^90.0.0",
+    "enquirer": "^2.3.6",
     "inquirer": "^8.2.0",
+    "prompt-checkbox": "^2.2.0",
     "selenium-webdriver": "^4.0.0-alpha.8"
   },
   "engines": {
     "node": "^14.0.0"
   },
   "scripts": {
-    "start": "node src/webdriver.js"
+    "start": "node src/index.js"
   }
 }
