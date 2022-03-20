@@ -7,62 +7,99 @@ const inputQuestion = readline.createInterface({
   output: process.stdout,
 });
 
+const inquirer = require('inquirer');
+
 /**
  * This class is a Webdriver, it use to automatize the update prices from Amazon.
  */
 class Webdriver {
-  
 
-  constructor(browser) {
-    this.driver = new Builder().forBrowser(browser).build();
+  async boot(){
+    this.driver = new Builder().forBrowser('chrome').build();
     this.driver.manage().window().maximize();
     
-    this.boot()
+    this.init()
   }
 
   /**
    * Init funciton
    */
-  async boot() {
+  async init() {
     try {
       await this.getURL("https://sellercentral.amazon.de/");
 
       await this.buttonClick(By.xpath(elXPaths.LINKS.loginButton));
       await this.waitPageLoad();
 
-      inputQuestion.question("Logged?[y/n]", async (answer) => {
-        if (answer == "y") {
+      inquirer.prompt([
+        {
+          type: "list",
+          name: "choise",
+          message: "Is Logged in?",
+          choices: [
+            "Yes",
+            "No"
+          ]
+        }
+      ]).then(async (answer) => {
+        if (answer.choise == "Yes"){
           await this.waitPageLoad();
-          await this.doQuestion();
+          await this.pickCountry();
         } else {
-          console.log("Exit.");
-          await this.driver.quit()
-          process.exit()
+          await this.driver.quit();
+          process.exit();
         }
       });
+
+      // inputQuestion.question("Logged?[y/n]", async (answer) => {
+      //   if (answer == "y") {
+      //     await this.waitPageLoad();
+      //     await this.doQuestion();
+      //   } else {
+      //     console.log("Exit.");
+      //     await this.driver.quit()
+      //     process.exit()
+      //   }
+      // });
     } catch (error) {
       console.error(error.message);
       // inputQuestion.log(error.message);
     }
   }
 
-  async doQuestion() {
+  async pickCountry() {
     await this.getURL("https://sellercentral.amazon.de/global-picker");
     console.log("Choose the country to update prices.\n[Except Poland, Sweden, Netherlands]");
+
+    inquirer.prompt([
+      {
+        type: "comfirm",
+        name: "result",
+        message: "Comfirm? (Y/N)",
+      }
+    ]).then(async (answer) => {
+      if (answer.result){
+        await this.loopAmazonCountry();
+      } else {
+        await this.driver.quit();
+        process.exit();
+      }
+    });
+
     // let index = 0;
     // countries.forEach((country) => {
     //   console.log(index + ". " + country);
     //   index++;
     // });
-    inputQuestion.question("Press 'y' to continue: ", async (answer) => {
-      if (answer == "y") {
-        await this.loopAmazonCountry();
-      } else {
-        console.log();
-        (await this.driver).quit();
-        process.exit();
-      }
-    });
+    // inputQuestion.question("Press 'y' to continue: ", async (answer) => {
+    //   if (answer == "y") {
+    //     await this.loopAmazonCountry();
+    //   } else {
+    //     console.log();
+    //     (await this.driver).quit();
+    //     process.exit();
+    //   }
+    // });
   }
 
   /**
@@ -98,59 +135,123 @@ class Webdriver {
     let lastPageNumberProducts = totalProducts - number * 250;
     // console.log(lastPageNumberProducts);
     totalTabs = totalTabs.split(" ")[1];
-    console.log(`Number of Products: ${totalProducts}. \n Pages: ${totalTabs}`);
+    // console.log(`Number of Products: ${totalProducts}. \n Pages: ${totalTabs}`);
 
-    inputQuestion.question(`Chosse one page between 1 to ${totalTabs}\n[Press 0 to Exit]\nPage:`, async (page) => {
-      if (page != 0) {
-        let currentTab = Number(page);
-
-        // console.log(currentTab);
-        // console.log(totalTabs);
-        let currentPageTotalProducts = currentTab == totalTabs ? lastPageNumberProducts : 250;
-        // console.log(currentPageTotalProducts);
-
-        await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        await this.waitPageLoad();
-
-        if (page != 1) {
-          await (await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput))).clear();
-          await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput)).sendKeys(currentTab);
-          await (await this.driver.findElement(By.xpath(elXPaths.LINKS.buttonTabGO))).click();
-          await this.waitPageLoad();
-        }
-
-        await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        console.log("Page: " + currentTab);
-        (await this.driver).sleep(3000);
-        await this.waitPageLoad();
-
-        inputQuestion.question("Start Update? [Y to start/N to abort operation]", async (answer) => {
-          if (answer == "y") {
-            // Loop Prices
-            await this.loopProductsPrice(currentPageTotalProducts);
-            await this.waitPageLoad();
-
-            inputQuestion.question(
-              `Completed - Waiting for save...\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:`,
-              async (answer) => {
-                if (answer == 1) {
-                  await this.loopPages();
-                } else if (answer == 2) {
-                  await this.doQuestion();
-                } else if (answer == 0) {
-                  console.log("Exited.");
-                  (await this.driver).quit();
-                }
-              }
-            );
-          }
-        });
-      } else {
-        console.log("Exited.");
-        (await this.driver).quit();
-        process.exit();
+    await inquirer.prompt([
+      {
+        type: "list",
+        name: "page",
+        message: `An total of ${totalProducts} products encoutered.\n Choose the Page you want update:`,
+        pageSize: totalTabs,
+        choices: 
+          Array.from({length: totalTabs}, (_, i) => `Page ${i + 1}`)
       }
+    ]).then(async (answer) => {
+      let page = answer.page.split("Page ")[1]
+      let currentTab = Number(page);
+      let currentPageTotalProducts = currentTab == totalTabs ? lastPageNumberProducts : 250;
+      await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+      await this.waitPageLoad();
+
+      if (page != 1) {
+        await (await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput))).clear();
+        await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput)).sendKeys(currentTab);
+        await (await this.driver.findElement(By.xpath(elXPaths.LINKS.buttonTabGO))).click();
+        await this.waitPageLoad();
+      }
+
+      await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+      console.log("Page: " + currentTab);
+      (await this.driver).sleep(3000);
+      await this.waitPageLoad();
+
+      await inquirer.prompt([
+        {
+          type: "confirm",
+          message: "Are you sure you want to continue?",
+          name: "continue",
+        }
+      ]).then(async (answer) => {
+        if (answer.continue) {
+          await this.loopProductsPrice(currentPageTotalProducts);
+          await this.waitPageLoad();
+
+          await inquirer.prompt([
+            {
+              type: "list",
+              name: "choice",
+              message: "Continue updating another page or change country?",
+              choices: [
+                "Update another Page.",
+                "Change to current Country.",
+                "Exit"
+              ]
+            }
+          ]).then(async (answer2) => {
+            if (String(answer2.choice).startsWith("Update another Page.")){
+              await this.loopPages();
+            } else if (String(answer2.choice).startsWith("Change to current Country.")){
+              await this.pickCountry();
+            } else {
+              (await this.driver).quit();
+              process.exit()
+            }
+          })
+        }
+      })
     });
+
+    // inputQuestion.question(`Chosse one page between 1 to ${totalTabs}\n[Press 0 to Exit]\nPage:`, async (page) => {
+    //   if (page != 0) {
+    //     let currentTab = Number(page);
+
+    //     // console.log(currentTab);
+    //     // console.log(totalTabs);
+    //     let currentPageTotalProducts = currentTab == totalTabs ? lastPageNumberProducts : 250;
+    //     // console.log(currentPageTotalProducts);
+
+    //     await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+    //     await this.waitPageLoad();
+
+    //     if (page != 1) {
+    //       await (await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput))).clear();
+    //       await this.driver.findElement(By.xpath(elXPaths.ELEMENTS.tabInput)).sendKeys(currentTab);
+    //       await (await this.driver.findElement(By.xpath(elXPaths.LINKS.buttonTabGO))).click();
+    //       await this.waitPageLoad();
+    //     }
+
+    //     await this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+    //     console.log("Page: " + currentTab);
+    //     (await this.driver).sleep(3000);
+    //     await this.waitPageLoad();
+
+    //     inputQuestion.question("Start Update? [Y to start/N to abort operation]", async (answer) => {
+    //       if (answer == "y") {
+    //         // Loop Prices
+    //         await this.loopProductsPrice(currentPageTotalProducts);
+    //         await this.waitPageLoad();
+
+    //         inputQuestion.question(
+    //           `Completed - Waiting for save...\n1. To Re-price another page.\n2. To Change the Country.\n0. To Exit.\nNumber:`,
+    //           async (answer) => {
+    //             if (answer == 1) {
+    //               await this.loopPages();
+    //             } else if (answer == 2) {
+    //               await this.pickCountry();
+    //             } else if (answer == 0) {
+    //               console.log("Exited.");
+    //               (await this.driver).quit();
+    //             }
+    //           }
+    //         );
+    //       }
+    //     });
+    //   } else {
+    //     console.log("Exited.");
+    //     (await this.driver).quit();
+    //     process.exit();
+    //   }
+    // });
   }
 
   /**
@@ -166,35 +267,37 @@ class Webdriver {
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
             )
             ),
           20000
         )
+        /**
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[2]/td[12]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[3]/td[12]/div/div[1]/span/div/div/span/input
+         */
         .then(async (el) => {
           return await el.getAttribute("value");
         })
-        .catch(() => {
-          console.error("Element not found.");
-        });
+        .catch(error => console.log("Error Element not found. \n", error ));
 
       let priceElBussiness = await this.driver
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/` +
-                `tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
           ),
           20000
         )
+        /**
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[2]/td[13]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[3]/td[13]/div/div[1]/span/div/div/span/input
+         */
         .then(async (el) => {
           return await el.getAttribute("value");
         })
-        .catch(() => {
-          console.error("Element not found.");
-        });
+        .catch(error => console.log("Error Element not found. \n", error ));
 
       // await this.sleep(300);
 
@@ -206,10 +309,9 @@ class Webdriver {
             (
               await (await this.driver).findElement(
                 By.xpath(
-                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                    `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
-              )
+              ).catch(error => console.log("Error Element not found. \n", error ))
             ).sendKeys(priceElClient);
             console.log(
               index + ". Amazon's price: " + priceElClient + " - Bussines's price: " + priceElClient + " - Updated"
@@ -219,16 +321,14 @@ class Webdriver {
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                      `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
-                )
+                ).catch(error => console.log("Error Element not found. \n", error ))
               ).clear();
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/` +
-                      `div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
                 )
               ).sendKeys(priceElClient);
@@ -298,4 +398,4 @@ class Webdriver {
   }
 }
 
-new Webdriver("chrome")
+module.exports = Webdriver;
