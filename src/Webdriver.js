@@ -267,7 +267,7 @@ class Webdriver {
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[${index + 1}]/td[12]/div/div[1]/span/div/div/span/input`
             )
             ),
           20000
@@ -285,14 +285,15 @@ class Webdriver {
         .wait(
           until.elementLocated(
             By.xpath(
-              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+              `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
           ),
           20000
         )
         /**
-         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[2]/td[13]/div/div[1]/span/div/div/span/input
-         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[3]/td[13]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[25]/td[13]/div/div[1]/span/div/div/span/input"
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[2]/td[13]/div/div[1]/span/div/div/span/input
+         * /html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[3]/td[13]/div/div[1]/span/div/div/span/input
          */
         .then(async (el) => {
           return await el.getAttribute("value");
@@ -309,7 +310,7 @@ class Webdriver {
             (
               await (await this.driver).findElement(
                 By.xpath(
-                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                  `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                 )
               ).catch(error => console.log("Error Element not found. \n", error ))
             ).sendKeys(priceElClient);
@@ -321,14 +322,14 @@ class Webdriver {
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
                 ).catch(error => console.log("Error Element not found. \n", error ))
               ).clear();
               (
                 await (await this.driver).findElement(
                   By.xpath(
-                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[3]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
+                    `/html/body/div[1]/div[2]/div[2]/div[1]/div[1]/div/div[2]/div[2]/div[5]/div/table/tbody/tr[${index + 1}]/td[13]/div/div[1]/span/div/div/span/input`
                   )
                 )
               ).sendKeys(priceElClient);
